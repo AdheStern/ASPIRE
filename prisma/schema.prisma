@@ -1,0 +1,223 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ===============================================
+// 2. AUTHENTICATION MODELS (for better-auth)
+// ===============================================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  password      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accounts Account[]
+  sessions Session[]
+  projects Project[] 
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session") 
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@unique([accountId, providerId])
+  @@map("account")
+}
+
+
+
+model Verification {
+  id         String    @id @default(cuid())
+  identifier String
+  value      String    @unique
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@map("verification")
+}
+
+// ===============================================
+// 3. ASPIRE CORE MODELS
+// ===============================================
+
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scenes Scene[] 
+}
+
+model Scene {
+  id              String   @id @default(cuid())
+  name            String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  geometryData    Json
+  soundSourceData Json // Contendrá la lista de altavoces y sus posiciones
+  instrumentSetup Json // ¡NUEVO! Contendrá la lista de instrumentos y sus posiciones
+
+  projectId      String
+  project        Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  simulationRuns SimulationRun[]
+  measurements   Measurement[]
+}
+
+
+// --- Simulation and Measurement Data ---
+
+model SimulationRun {
+  id             String    @id @default(cuid())
+  createdAt      DateTime  @default(now())
+  engineUsed     String
+  status         String
+  // ¡NUEVO! Campo para almacenar parámetros clave de la simulación
+  simulationParams Json?   // e.g., { "rayCount": 50000, "maxReflections": 10 }
+  // ¡NUEVO! Referencia a los resultados generados para un fácil acceso
+  clarityDataId  String?   @unique
+  clarityData    SimulatedClarity? @relation(fields: [clarityDataId], references: [id])
+
+  sceneId        String
+  scene          Scene           @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+  simulatedRT60s SimulatedRT60[]
+  simulatedSPLs  SimulatedSPL[]
+}
+
+model SimulatedRT60 {
+  id              String  @id @default(cuid())
+  frequencyBand   Int
+  reverbTime      Float
+  simulationRunId String
+  simulationRun   SimulationRun @relation(fields: [simulationRunId], references: [id], onDelete: Cascade)
+}
+
+model SimulatedSPL {
+  id              String  @id @default(cuid())
+  positionX       Float
+  positionY       Float
+  positionZ       Float
+  splValue        Float
+  simulationRunId String
+  simulationRun   SimulationRun @relation(fields: [simulationRunId], references: [id], onDelete: Cascade)
+}
+
+model SimulatedClarity {
+  id              String        @id @default(cuid())
+  // D50 (Definition) para la inteligibilidad de la palabra
+  d50Data         Json? // e.g., { "125Hz": 0.4, "250Hz": 0.5, ... }
+  // C80 (Clarity) para la claridad musical
+  c80Data         Json?
+  
+  simulationRun   SimulationRun? // Relación uno a uno de vuelta a la simulación
+}
+
+model Measurement {
+  id            String   @id @default(cuid())
+  measuredAt    DateTime @default(now())
+  notes         String?
+  sceneId       String
+  scene         Scene    @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+  measuredRT60s MeasuredRT60[]
+  // ¡NUEVO! Podemos añadir más tablas para datos medidos si los importamos de REW
+}
+
+model MeasuredRT60 {
+  id            String      @id @default(cuid())
+  frequencyBand Int
+  reverbTime    Float
+  measurementId String
+  measurement   Measurement @relation(fields: [measurementId], references: [id], onDelete: Cascade)
+}
+
+
+// --- Asset (Dataset) Tables ---
+model AcousticMaterial {
+  id                     String @id @unique
+  name                   String
+  description            String?
+  absorptionCoefficients Json
+}
+
+model SpeakerModel {
+  id             String  @id @unique
+  brand          String
+  model          String
+  // ¡CAMPO MEJORADO! Ahora es un JSON para más flexibilidad
+  specifications Json // e.g., { "type": "Powered Line Array", "dispersion": {"h": 100, "v": 15}, "frequencyRange": "55Hz-20kHz", "weight_kg": 25 }
+}
+
+// ¡NUEVA TABLA! Para micrófonos
+model MicrophoneModel {
+  id             String  @id @unique
+  brand          String
+  model          String
+  specifications Json // e.g., { "type": "Condenser", "polarPattern": "Cardioid", "frequencyResponse": "20Hz-20kHz" }
+}
+
+// ¡NUEVA TABLA! Para instrumentos
+model InstrumentModel {
+  id             String @id @unique
+  name           String // e.g., "Batería Acústica (Set 5 piezas)", "Guitarra Eléctrica (Stratocaster)", "Piano de Cola"
+  category       String // e.g., "Percussion", "Strings", "Keys"
+  specifications Json   // e.g., { "typicalFrequencyRange": "50Hz-15kHz", "acousticPower": "High" }
+}
+
+// ¡NUEVA TABLA! Para consolas/mixers
+model MixerModel {
+  id             String  @id @unique
+  brand          String
+  model          String
+  specifications Json // e.g., { "type": "Digital", "channels": 32, "preamps": "Midas Pro" }
+}
+
+// ¡NUEVA TABLA! Para procesadores (Drive Racks)
+model ProcessorModel {
+  id             String  @id @unique
+  brand          String
+  model          String
+  specifications Json // e.g., { "type": "Loudspeaker Management System", "features": ["EQ", "Compressor", "Limiter", "Crossover"] }
+}
