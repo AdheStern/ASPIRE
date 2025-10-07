@@ -22,7 +22,10 @@ const audiowide = Audiowide({
 
 export const metadata: Metadata = {
   title: "Aspire",
-  description: "Desarrollado por Adhemar Claure",
+  description: "Simulación sonora para entornos congregacionales",
+  verification: {
+    google: "pE0SnJPdQN-FvAdZEn_b6OxGPJyPRrFof_3HEf4SqUo",
+  },
 };
 
 export default function RootLayout({
