@@ -47,11 +47,6 @@ export default async function RoomEditorPage({ params }: RoomEditorPageProps) {
     notFound();
   }
 
-  return (
-    <RoomEditorLayout
-      scene={scene}
-      projectId={projectId}
-      userId={session.user.id}
-    />
-  );
+  // biome-ignore lint/correctness/noChildrenProp: its temporally until we add the editor components
+  return <RoomEditorLayout children={undefined} />;
 }
