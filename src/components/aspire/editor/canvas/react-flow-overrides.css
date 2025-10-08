@@ -1,0 +1,55 @@
+/* src/components/aspire/editor/canvas/react-flow-overrides.css */
+
+/* Hacer los edges más fáciles de seleccionar */
+.react-flow__edge-path {
+  stroke-width: 3;
+  cursor: pointer;
+}
+
+/* Aumentar el área clickeable de los edges */
+.react-flow__edge-interaction {
+  stroke-width: 20;
+  cursor: pointer;
+}
+
+/* Estilo para edges seleccionados */
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: #3b82f6 !important;
+  stroke-width: 4;
+}
+
+/* Hover en edges */
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke: #64748b !important;
+  stroke-width: 4;
+}
+
+/* Animación suave para cambios de estado */
+.react-flow__edge-path {
+  transition: stroke 0.2s ease, stroke-width 0.2s ease;
+}
+
+/* Asegurar que los handles sean visibles y clickeables */
+.react-flow__handle {
+  width: 12px !important;
+  height: 12px !important;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  background: white;
+  z-index: 10;
+}
+
+/* Handle activo durante conexión */
+.react-flow__handle-connecting {
+  background: #3b82f6 !important;
+}
+
+/* Handle válido para conexión */
+.react-flow__handle-valid {
+  background: #22c55e !important;
+}
+
+/* Asegurar que los nodos tengan suficiente padding para los números */
+.react-flow__node {
+  padding: 20px 5px !important;
+}
