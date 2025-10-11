@@ -27,7 +27,7 @@ const data = {
   navMain: [
     {
       title: "Proyectos",
-      url: "/aspire/project",
+      url: "/aspire",
       icon: Package,
       isActive: true,
     },

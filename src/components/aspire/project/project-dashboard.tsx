@@ -3,6 +3,7 @@
 import { LayoutGrid, List, Plus, Search } from "lucide-react";
 import { useState } from "react";
 import { CreateProjectDialog } from "@/components/aspire/project/forms/create-project-dialog";
+import { BorderBeam } from "@/components/ui/border-beam";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { ProjectWithCount } from "@/lib/types/project";
@@ -48,13 +49,20 @@ export function ProjectDashboard({
 
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-4 p-6">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative flex-1 max-w-sm rounded-md">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Buscar un proyecto..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
+          />
+          <BorderBeam
+            duration={6}
+            delay={3}
+            size={400}
+            borderWidth={2}
+            className="from-transparent via-green-300 to-transparent"
           />
         </div>
 
