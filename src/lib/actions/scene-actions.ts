@@ -3,11 +3,11 @@
 
 import { revalidatePath } from "next/cache";
 import type { Edge, Node } from "reactflow";
-import type { Speaker3DData } from "@/components/aspire/simulation/types";
 import { db } from "@/lib/db";
 import type { SceneFormData } from "@/lib/schemas/scene-schema";
 import { sceneSchema, sceneUpdateSchema } from "@/lib/schemas/scene-schema";
 import type { RoomGeometry } from "@/lib/types/simulation";
+import type { Speaker3DData } from "../three/types/editor.types";
 
 // Crear escena
 export async function createScene(

@@ -11,7 +11,7 @@ import {
 } from "reactflow";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import type { Speaker3DData } from "@/components/aspire/simulation/types";
+import type { SpeakerFromDB } from "@/lib/three/types/editor.types"; // ✅ Import correcto
 import type { CatalogItem } from "@/lib/types/catalog";
 
 // Tipos de nodos disponibles
@@ -29,7 +29,8 @@ export interface BaseNodeData {
   label: string;
   catalogId?: string; // ID del catálogo (instrument, speaker, etc.)
   catalogData?: CatalogItem; // Datos del catálogo para información dinámica
-  settings: Record<string, any>; // Permitir objetos complejos para simulación
+  // biome-ignore lint/suspicious/noExplicitAny: Settings puede contener cualquier configuración
+  settings: Record<string, unknown>; // Permitir objetos complejos para simulación
 }
 
 // Estado del editor
@@ -61,7 +62,7 @@ interface EditorState {
 
   // Speaker-specific methods
   getSpeakerNodes: () => Node<BaseNodeData>[];
-  prepareSpeakersForSimulation: () => Speaker3DData[];
+  prepareSpeakersForSimulation: () => SpeakerFromDB[]; // ✅ Tipo correcto
 }
 
 // Generador de IDs únicos
@@ -180,7 +181,7 @@ export const useEditorStore = create<EditorState>()(
         // Actualizar el contador de IDs para evitar colisiones
         const maxId = nodes.reduce((max, node) => {
           const match = node.id.match(/node_(\d+)/);
-          return match ? Math.max(max, parseInt(match[1], 10)) : max;
+          return match ? Math.max(max, Number.parseInt(match[1], 10)) : max;
         }, 0);
         nodeIdCounter = maxId + 1;
       });
@@ -197,7 +198,7 @@ export const useEditorStore = create<EditorState>()(
         // Actualizar el contador de IDs
         const maxId = nodes.reduce((max, node) => {
           const match = node.id.match(/node_(\d+)/);
-          return match ? Math.max(max, parseInt(match[1], 10)) : max;
+          return match ? Math.max(max, Number.parseInt(match[1], 10)) : max;
         }, 0);
         nodeIdCounter = maxId + 1;
       });
@@ -285,9 +286,10 @@ export const useEditorStore = create<EditorState>()(
         `Found ${connectedSpeakers.length} speakers connected to simulation`
       );
 
-      // 5. Convertir a formato Speaker3DData
+      // 5. Convertir a formato SpeakerFromDB (compatible con BD)
       return connectedSpeakers.map((node, index) => {
         const catalogData = node.data.catalogData;
+        // biome-ignore lint/suspicious/noExplicitAny: Specifications puede tener cualquier estructura
         const specs = catalogData?.specifications as any;
 
         // Posición por defecto: distribuir parlantes en círculo
@@ -297,10 +299,12 @@ export const useEditorStore = create<EditorState>()(
 
         return {
           id: `speaker-3d-${node.id}`,
-          nodeId: node.id,
-          catalogId: node.data.catalogId || "unknown",
-          brand: catalogData?.brand || "Sin marca",
-          model: catalogData?.model || catalogData?.name || "Sin modelo",
+          name: catalogData
+            ? `${catalogData.brand || ""} ${
+                catalogData.model || catalogData.name || ""
+              }`.trim()
+            : `Speaker ${node.id}`,
+          speakerId: node.data.catalogId || "unknown", // ✅ ESTO ES LO IMPORTANTE: usar catalogId (ej: "jbl-prx418s")
           position: {
             x: Math.cos(angle) * radius,
             y: specs?.dimensions_mm?.height
@@ -320,7 +324,7 @@ export const useEditorStore = create<EditorState>()(
             max_spl_db: specs?.max_spl_db,
             frequencyRange_minus_10_db: specs?.frequencyRange_minus_10_db,
             frequencyRange_minus_3_db: specs?.frequencyRange_minus_3_db,
-            dispersion: specs?.dispersion,
+            dispersion: specs?.dispersion || { horizontal: 90, vertical: 60 },
             weight_kg: specs?.weight_kg,
             dimensions_mm: specs?.dimensions_mm || {
               height: 500,
