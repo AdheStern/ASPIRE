@@ -9,6 +9,7 @@
  */
 
 import { Edges, Text } from "@react-three/drei";
+import type { ThreeEvent } from "@react-three/fiber";
 import { useRef, useState } from "react";
 import type { Mesh } from "three";
 import * as THREE from "three";
@@ -44,10 +45,14 @@ export function RoomGeometry({ dimensions, materials }: RoomGeometryProps) {
   const canSelectFaces = editorMode === "geometry";
 
   // Manejar click en cara
-  const handleFaceClick = (event: any) => {
+  // biome-ignore lint/a11y/noStaticElementInteractions: Necesario para interactividad 3D
+  const handleFaceClick = (event: ThreeEvent<MouseEvent>) => {
     if (!canSelectFaces) return;
 
     event.stopPropagation();
+
+    // ✅ CORRECCIÓN: Verificar que faceIndex existe
+    if (event.faceIndex === undefined || event.faceIndex === null) return;
 
     // Obtener el índice de la cara clickeada
     const faceIndex = Math.floor(event.faceIndex / 2); // Cada cara tiene 2 triángulos
@@ -63,7 +68,7 @@ export function RoomGeometry({ dimensions, materials }: RoomGeometryProps) {
   const getFaceColor = (faceType: FaceType) => {
     // Si está seleccionada
     if (selectedFace === faceType) {
-      return "#0088ff";
+      return EDITOR_COLORS.roomSelected;
     }
 
     // Si tiene material asignado (no default)
@@ -73,19 +78,24 @@ export function RoomGeometry({ dimensions, materials }: RoomGeometryProps) {
     }
 
     // Sin material (default)
-    return "#333333"; // Gris oscuro
+    return EDITOR_COLORS.roomDefault;
   };
 
   return (
     <group>
       {/* Cubo principal de la habitación */}
+      {/** biome-ignore lint/a11y/noStaticElementInteractions: false positive */}
       <mesh
         ref={meshRef}
         position={[0, height / 2, 0]}
         onClick={handleFaceClick}
-        onPointerOver={(e) => {
+        onPointerOver={(e: ThreeEvent<PointerEvent>) => {
           if (!canSelectFaces) return;
           e.stopPropagation();
+
+          // ✅ CORRECCIÓN: Verificar que faceIndex existe
+          if (e.faceIndex === undefined || e.faceIndex === null) return;
+
           const faceIndex = Math.floor(e.faceIndex / 2);
           setHoveredFace(faceIndex);
           document.body.style.cursor = "pointer";
@@ -99,41 +109,24 @@ export function RoomGeometry({ dimensions, materials }: RoomGeometryProps) {
         <boxGeometry args={[width, height, depth]} />
 
         {/* Materiales individuales por cara */}
+        {/* ✅ CORRECCIÓN: Usar string como key en vez de index */}
         {[
-          materials?.right || {
-            materialId: "default",
-            absorptionCoefficient: 0.1,
-          },
-          materials?.left || {
-            materialId: "default",
-            absorptionCoefficient: 0.1,
-          },
-          materials?.ceiling || {
-            materialId: "default",
-            absorptionCoefficient: 0.1,
-          },
-          materials?.floor || {
-            materialId: "default",
-            absorptionCoefficient: 0.1,
-          },
-          materials?.front || {
-            materialId: "default",
-            absorptionCoefficient: 0.1,
-          },
-          materials?.back || {
-            materialId: "default",
-            absorptionCoefficient: 0.1,
-          },
-        ].map((mat, index) => {
+          { face: "right", material: materials?.right },
+          { face: "left", material: materials?.left },
+          { face: "ceiling", material: materials?.ceiling },
+          { face: "floor", material: materials?.floor },
+          { face: "front", material: materials?.front },
+          { face: "back", material: materials?.back },
+        ].map(({ face, material: mat }, index) => {
           const faceType = FACE_INDEX_MAP[index];
           const color = getFaceColor(faceType);
           const isHovered = hoveredFace === index;
 
           return (
             <meshStandardMaterial
-              key={index}
+              key={`material-${face}`}
               attach={`material-${index}`}
-              color={isHovered ? "#555555" : color}
+              color={isHovered ? EDITOR_COLORS.roomHovered : color}
               transparent
               opacity={0.3}
               side={THREE.DoubleSide}
@@ -141,7 +134,7 @@ export function RoomGeometry({ dimensions, materials }: RoomGeometryProps) {
           );
         })}
 
-        {/* Wireframe (borde verde) */}
+        {/* Wireframe (borde) */}
         <Edges
           threshold={15}
           color={EDITOR_COLORS.roomWireframe}
@@ -154,7 +147,7 @@ export function RoomGeometry({ dimensions, materials }: RoomGeometryProps) {
       <mesh position={[0, height / 2, depth / 2 + 0.01]} rotation={[0, 0, 0]}>
         <planeGeometry args={[width * 0.8, height * 0.8]} />
         <meshBasicMaterial
-          color={EDITOR_COLORS.roomFrontFace}
+          color="#ff4444"
           transparent
           opacity={0.15}
           side={THREE.DoubleSide}

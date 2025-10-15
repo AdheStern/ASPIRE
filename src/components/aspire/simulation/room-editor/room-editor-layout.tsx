@@ -9,12 +9,15 @@
  */
 
 import { useEffect, useState } from "react";
+import { useSimulation } from "@/hooks/use-simulation";
+import type { SimulationType } from "@/lib/api/types/simulation";
 import { useKeyboardShortcuts } from "@/lib/three/hooks/use-keyboard-shortcuts";
 import { useEditorStore } from "@/lib/three/store/editor-store";
 import type { SpeakerFromDB } from "@/lib/three/types/editor.types";
 import { DockToolbar } from "../panels/dock-toolbar";
 import { HeaderBar } from "../panels/header-bar";
 import { LeftPanel } from "../panels/left-panel";
+import { ResultsPanel } from "../panels/results-panel";
 import { RightPanel } from "../panels/right-panel";
 import { StatusBar } from "../panels/status-bar";
 import type { SceneData } from "../types";
@@ -41,6 +44,15 @@ export function RoomEditorLayout({
 }: RoomEditorLayoutProps) {
   // Activar atajos de teclado
   useKeyboardShortcuts();
+
+  // Hook de simulación
+  const {
+    isLoading: isSimulating,
+    error: simulationError,
+    results: simulationResults,
+    runSimulation,
+    reset: resetSimulation,
+  } = useSimulation();
 
   // Estado para forzar re-render cuando el viewport cambia
   const [viewportKey, setViewportKey] = useState(0);
@@ -160,10 +172,34 @@ export function RoomEditorLayout({
     }
   }, [scene, setDimensions, setSpeakers]);
 
-  // Helper para obtener el material de una cara
-  const getFaceMaterial = (face: string) => {
-    return faceMaterials[face as keyof typeof faceMaterials];
+  // Handler para ejecutar simulación
+  const handleRunSimulation = async (simulationType: SimulationType) => {
+    try {
+      // Obtener el estado completo del editor
+      const editorState = useEditorStore.getState();
+
+      console.log("🚀 Iniciando simulación con tipo:", simulationType);
+      console.log("📊 Estado del editor:", {
+        speakers: editorState.speakers.length,
+        dimensions: editorState.dimensions,
+        materials: editorState.faceMaterials,
+      });
+
+      // Ejecutar simulación
+      await runSimulation(editorState, simulationType);
+
+      console.log("✅ Simulación completada exitosamente");
+    } catch (error) {
+      console.error("❌ Error en simulación:", error);
+    }
   };
+
+  // Log cuando hay resultados
+  useEffect(() => {
+    if (simulationResults) {
+      console.log("📈 Resultados de simulación recibidos:", simulationResults);
+    }
+  }, [simulationResults]);
 
   // Speaker seleccionado
   const selectedSpeakerData = selectedSpeaker
@@ -223,9 +259,13 @@ export function RoomEditorLayout({
             selectedSpeaker={selectedSpeakerData}
             faceMaterials={faceMaterials}
             onUpdateFaceMaterial={updateFaceMaterial}
-            getFaceMaterial={getFaceMaterial}
             selectedFace={selectedFace}
             materials={materials}
+            // ✅ Props de simulación
+            onRunSimulation={handleRunSimulation}
+            isSimulating={isSimulating}
+            simulationError={simulationError}
+            totalSpeakers={speakers.length}
           />
         </div>
       </div>
@@ -242,6 +282,11 @@ export function RoomEditorLayout({
       <div className="shrink-0">
         <StatusBar selectedTool={selectedTool} showGrid={showGrid} />
       </div>
+
+      {/* Results Panel - Modal overlay */}
+      {simulationResults && (
+        <ResultsPanel results={simulationResults} onClose={resetSimulation} />
+      )}
     </div>
   );
 }

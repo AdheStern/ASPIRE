@@ -15,7 +15,6 @@ import type {
   EditorMode,
   EditorState,
   FaceMaterial,
-  FaceMaterialsMap,
   FaceType,
   RoomDimensions,
   Speaker3DData,

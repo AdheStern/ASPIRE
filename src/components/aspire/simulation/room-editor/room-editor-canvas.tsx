@@ -142,7 +142,7 @@ export function RoomEditorCanvas() {
           dampingFactor={0.05}
           minDistance={2}
           maxDistance={50}
-          maxPolarAngle={Math.PI / 2}
+          maxPolarAngle={Math.PI * 0.95}
           target={[
             CAMERA_CONFIG.initialTarget.x,
             CAMERA_CONFIG.initialTarget.y,

@@ -88,7 +88,6 @@ export interface SpeakerSpecifications {
   notes?: string;
 
   // Otros campos que puedan venir de la BD
-  // biome-ignore lint/suspicious/noExplicitAny: Flexibilidad para campos adicionales de BD
   [key: string]: unknown;
 }
 
@@ -218,7 +217,6 @@ export type EditorEventType =
   | "tool:changed"
   | "mode:changed";
 
-// biome-ignore lint/suspicious/noExplicitAny: EventType puede tener cualquier payload
 export interface EditorEvent<T = unknown> {
   type: EditorEventType;
   payload: T;

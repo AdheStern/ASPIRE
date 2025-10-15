@@ -1,151 +1,3 @@
-// // src/lib/three/constants/editor.constants.ts
-
-// /**
-//  * Constantes del editor 3D
-//  * Valores configurables para cámara, iluminación, grid, etc.
-//  */
-
-// import type { FaceType } from "../types/editor.types";
-
-// // ============================================================================
-// // CONFIGURACIÓN DE CÁMARA
-// // ============================================================================
-
-// export const CAMERA_CONFIG = {
-//   fov: 50,
-//   near: 0.1,
-//   far: 1000,
-//   initialPosition: { x: 15, y: 10, z: 15 },
-//   initialTarget: { x: 0, y: 2, z: 0 },
-// } as const;
-
-// // ============================================================================
-// // CONFIGURACIÓN DE ILUMINACIÓN
-// // ============================================================================
-
-// export const LIGHTING_CONFIG = {
-//   ambient: {
-//     color: 0xffffff,
-//     intensity: 0.5,
-//   },
-//   directional: {
-//     color: 0xffffff,
-//     intensity: 0.8,
-//     position: { x: 10, y: 10, z: 5 },
-//   },
-//   secondary: {
-//     color: 0xffffff,
-//     intensity: 0.3,
-//     position: { x: -10, y: 10, z: -5 },
-//   },
-// } as const;
-
-// // ============================================================================
-// // CONFIGURACIÓN DE GRID
-// // ============================================================================
-
-// export const GRID_CONFIG = {
-//   size: 20,
-//   divisions: 20,
-//   cellSize: 1,
-//   cellThickness: 0.5,
-//   cellColor: "#6e6e6e",
-//   sectionSize: 5,
-//   sectionThickness: 1,
-//   sectionColor: "#9d4b4b",
-//   colorCenterLine: 0x444444,
-//   colorGrid: 0x888888,
-// } as const;
-
-// // ============================================================================
-// // CONFIGURACIÓN DE CONTROLES
-// // ============================================================================
-
-// export const CONTROLS_CONFIG = {
-//   enableDamping: true,
-//   dampingFactor: 0.05,
-//   minDistance: 2,
-//   maxDistance: 50,
-//   maxPolarAngle: Math.PI / 2, // No ir debajo del suelo
-//   screenSpacePanning: true,
-// } as const;
-
-// // ============================================================================
-// // COLORES DEL EDITOR
-// // ============================================================================
-
-// export const EDITOR_COLORS = {
-//   background: 0x1a1a1a,
-//   roomWireframe: 0x00ff00,
-//   roomFace: 0x333333,
-//   roomFaceHover: 0x555555,
-//   roomFaceSelected: 0x0088ff,
-//   roomFrontFace: 0xff4444, // Cara frontal (escenario) en rojo
-//   speaker: 0xff6b35,
-//   speakerSelected: 0xffaa00,
-//   speakerWireframe: 0x7c3aed, // Violeta suave
-//   directivityCone: 0x00ffff,
-//   axes: {
-//     x: "#ff0000",
-//     y: "#00ff00",
-//     z: "#0000ff",
-//   },
-// } as const;
-
-// // ============================================================================
-// // CONFIGURACIÓN DE SPEAKERS
-// // ============================================================================
-
-// export const SPEAKER_CONFIG = {
-//   defaultColor: EDITOR_COLORS.speaker,
-//   selectedColor: EDITOR_COLORS.speakerSelected,
-//   opacity: 0.8,
-//   wireframeOpacity: 0.3,
-//   directivity: {
-//     coneColor: EDITOR_COLORS.directivityCone,
-//     coneOpacity: 0.15,
-//     wireframeOpacity: 0.3,
-//     segments: 32,
-//   },
-// } as const;
-
-// // ============================================================================
-// // CONVERSIONES
-// // ============================================================================
-
-// export const MM_TO_METERS = 0.001;
-// export const METERS_TO_MM = 1000;
-
-// // ============================================================================
-// // NOMBRES DE CARAS
-// // ============================================================================
-
-// export const FACE_NAMES: Record<FaceType, string> = {
-//   floor: "Piso",
-//   ceiling: "Techo",
-//   front: "Pared Frontal",
-//   back: "Pared Trasera",
-//   left: "Pared Izquierda",
-//   right: "Pared Derecha",
-// } as const;
-
-// // ============================================================================
-// // VALORES POR DEFECTO
-// // ============================================================================
-
-// export const DEFAULT_ROOM_DIMENSIONS = {
-//   width: 10,
-//   height: 4,
-//   depth: 8,
-// } as const;
-
-// export const DEFAULT_SPEAKER_SCALE: [number, number, number] = [1, 1, 1];
-
-// export const DEFAULT_DISPERSION = {
-//   horizontal: 90,
-//   vertical: 60,
-// } as const;
-
 // src/lib/three/constants/editor.constants.ts
 
 /**
@@ -164,10 +16,11 @@ export const EDITOR_COLORS = {
   background: "#1a1a1a",
 
   // Room/Geometry - color más llamativo
-  roomDefault: "#7b68ee", // Violeta medio vibrante
-  roomSelected: "#9f8fff", // Violeta claro al seleccionar
+  roomDefault: "#a3a3a3", // Gris
+  roomSelected: "#8b5cf6", // Violeta claro al seleccionar
   roomHovered: "#8b7de8", // Violeta medio-claro al hover
-  roomWireframe: "#6a5acd", // Violeta oscurecido para wireframes
+  roomWireframe: "#d4d4d4", // Violeta oscurecido para wireframes
+  roomFrontFace: "#ff4444", // ✅ AGREGADO: Color para cara frontal (escenario)
 
   // Speakers - naranja y celeste
   speakerDefault: "#ff8c42", // Naranja vibrante
@@ -180,7 +33,7 @@ export const EDITOR_COLORS = {
   directivityOmni: "#a78bfa", // Violeta vibrante
 
   // Grid - verde visible
-  gridPrimary: "ffffff", // Verde oscuro visible
+  gridPrimary: "#fafafa", // Verde visible
   gridSecondary: "#1a2f0d", // Verde más oscuro
 
   // Ejes - colores originales RGB
@@ -255,7 +108,8 @@ export const CONTROLS_CONFIG = {
   dampingFactor: 0.05,
   minDistance: 2,
   maxDistance: 50,
-  maxPolarAngle: Math.PI / 2,
+  minPolarAngle: 0, // ✅ Permite rotar completamente hacia arriba
+  maxPolarAngle: Math.PI, // ✅ Permite rotar completamente hacia abajo (180°)
   screenSpacePanning: true,
 } as const;
 
